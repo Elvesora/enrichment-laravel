@@ -1,0 +1,106 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - php: '8.2'
+            testbench: '^10.0'
+            composer-args: '--prefer-lowest'
+          - php: '8.2'
+            testbench: '^10.0'
+            composer-args: ''
+          - php: '8.3'
+            testbench: '^10.0'
+            composer-args: ''
+          - php: '8.3'
+            testbench: '^11.0'
+            composer-args: '--prefer-lowest'
+          - php: '8.3'
+            testbench: '^11.0'
+            composer-args: ''
+          - php: '8.4'
+            testbench: '^10.0'
+            composer-args: ''
+          - php: '8.4'
+            testbench: '^11.0'
+            composer-args: ''
+          - php: '8.5'
+            testbench: '^10.0'
+            composer-args: ''
+          - php: '8.5'
+            testbench: '^11.0'
+            composer-args: ''
+
+    steps:
+      - name: Check out package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+          tools: composer:v2
+
+      - name: Select Laravel test series
+        run: composer require --dev --no-update "orchestra/testbench:${{ matrix.testbench }}"
+
+      - name: Validate Composer metadata
+        run: composer validate --strict
+
+      - name: Install dependencies
+        run: composer update --prefer-dist --no-interaction --no-progress ${{ matrix.composer-args }}
+
+      - name: Run quality checks
+        run: composer check
+
+  guzzle-8:
+    name: Guzzle 8 client contract
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out package
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@b604ade2a87db23f8871b7182e69ec5e75effb45 # v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+
+      - name: Install a Guzzle 8 consumer
+        shell: bash
+        run: |
+          consumer="$RUNNER_TEMP/enrichment-laravel-guzzle-8"
+          mkdir -p "$consumer"
+          composer init --working-dir="$consumer" --name=audit/enrichment-laravel-consumer --no-interaction
+          composer config --working-dir="$consumer" repositories.sdk path "$GITHUB_WORKSPACE"
+          composer require --working-dir="$consumer" --no-interaction --no-progress \
+            "elvesora/enrichment-laravel:@dev" \
+            "guzzlehttp/guzzle:8.*" \
+            "illuminate/support:13.*"
+          composer require --working-dir="$consumer" --dev --no-interaction --no-progress \
+            "phpunit/phpunit:12.*"
+
+      - name: Run the mocked HTTP client contract
+        shell: bash
+        run: |
+          cd "$RUNNER_TEMP/enrichment-laravel-guzzle-8"
+          composer show guzzlehttp/guzzle
+          ./vendor/bin/phpunit --no-configuration "$GITHUB_WORKSPACE/tests/ClientTest.php"

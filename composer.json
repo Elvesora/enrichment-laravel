@@ -1,0 +1,92 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "elvesora/enrichment-laravel",
+    "description": "Self-contained Laravel client for the Elvesora Company Enrichment API.",
+    "type": "library",
+    "keywords": [
+        "company enrichment",
+        "data enrichment",
+        "elvesora",
+        "laravel"
+    ],
+    "homepage": "https://www.elvesora.com/products/data-enrichment",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Elvesora",
+            "homepage": "https://www.elvesora.com"
+        }
+    ],
+    "support": {
+        "docs": "https://www.elvesora.com/docs/enrichment",
+        "issues": "https://github.com/Elvesora/enrichment-laravel/issues",
+        "source": "https://github.com/Elvesora/enrichment-laravel"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "guzzlehttp/guzzle": "^7.9 || ^8.0",
+        "illuminate/support": "^12.0 || ^13.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.29",
+        "orchestra/testbench": "^10.0 || ^11.0",
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5.50 || ^12.5.8",
+        "symfony/var-dumper": "^7.2 || ^8.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Elvesora\\Enrichment\\Laravel\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Elvesora\\Enrichment\\Laravel\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse --no-progress",
+        "format": "pint",
+        "format-test": "pint --test",
+        "validate-package": "composer validate --strict",
+        "security-audit": "composer audit --locked --no-interaction",
+        "check": [
+            "@validate-package",
+            "@format-test",
+            "@test",
+            "@analyse",
+            "@security-audit"
+        ]
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Elvesora\\Enrichment\\Laravel\\EnrichmentServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "allow-plugins": false,
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "archive": {
+        "exclude": [
+            "/.github",
+            "/.phpstan.cache",
+            "/.phpunit.cache",
+            "/.phpunit.result.cache",
+            "/.pint.cache",
+            "/composer.lock",
+            "/tests",
+            "/vendor",
+            "/phpunit.xml.dist",
+            "/phpstan.neon.dist",
+            "/pint.json"
+        ]
+    }
+}
